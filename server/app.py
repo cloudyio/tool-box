@@ -1,55 +1,62 @@
-from flask import Flask, request, jsonify, send_from_directory
-from flask_cors import CORS
-from pytube import YouTube
+# Flask Backend
 import os
+import string
+import random
+import json
+from flask import Flask, request, jsonify, redirect
 
 app = Flask(__name__)
-CORS(app)
+db_file = "url_shortener.json"
 
-@app.route('/download', methods=['POST', 'OPTIONS'])
-def download_video():
-    if request.method == 'OPTIONS':
-        response = jsonify({'message': 'Preflight request allowed.'})
-        response.headers.add('Access-Control-Allow-Methods', 'POST')
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
-        return response
-    
-    video_link = request.json.get('video_link')
-    resolution = request.json.get('resolution')
-    
-    try:
-        video = YouTube(video_link)
-        
-        # Find the stream with the specified resolution
-        stream = None
-        for strm in video.streams:
-            if strm.resolution == resolution:
-                stream = strm
-                break
-        
-        if stream is None:
-            response = {'error': f'No stream found for resolution: {resolution}'}
-            return jsonify(response), 400
-        
-        # Get the video ID
-        video_id = video.video_id
-        
-        # Construct the file path with the video ID and mp4 extension
-        file_path = os.path.join('./downloads', f'{video_id}.mp4')
-        
-        # Download the video using the video ID as the filename with the .mp4 extension
-        stream.download('./downloads/', filename=video_id + '.mp4')
-        
-        response = {'file_path': file_path}
-        return jsonify(response)
-    except Exception as e:
-        response = {'error': str(e)}
-        return jsonify(response), 400
+def initialize_database():
+    if not os.path.exists(db_file):
+        with open(db_file, "w") as f:
+            json.dump({}, f)
 
-@app.route('/downloads/<path:filename>', methods=['GET'])
-def serve_video(filename):
-    directory = os.path.join(app.root_path, 'downloads')
-    return send_from_directory(directory, filename)
+# Function to generate a random short URL
+def generate_short_url():
+    characters = string.ascii_letters + string.digits
+    short_url = ''.join(random.choice(characters) for i in range(6))
+    return short_url
+
+# Endpoint to create a short URL
+@app.route('/shorten', methods=['POST'])
+def shorten_url():
+    data = request.get_json()
+    long_url = data.get('long_url')
+
+    if not long_url:
+        return jsonify({'error': 'Invalid URL'}), 400
+
+    with open(db_file, 'r+') as f:
+        url_map = json.load(f)
+
+        # Check if the long URL already exists in the database
+        for short_url, url in url_map.items():
+            if url == long_url:
+                return jsonify({'short_url': f'http://cloudys.tech/{short_url}'})
+
+        short_url = generate_short_url()
+        url_map[short_url] = long_url
+
+        f.seek(0)
+        json.dump(url_map, f)
+        f.truncate()
+
+    return jsonify({'short_url': f'http://cloudys.tech/{short_url}'}), 201
+
+# Endpoint to redirect to the original URL
+@app.route('/<short_url>')
+def redirect_to_original_url(short_url):
+    with open(db_file, 'r') as f:
+        url_map = json.load(f)
+
+    long_url = url_map.get(short_url)
+    if not long_url:
+        return jsonify({'error': 'URL not found'}), 404
+
+    return redirect(long_url, code=301)
 
 if __name__ == '__main__':
+    initialize_database()
     app.run()
