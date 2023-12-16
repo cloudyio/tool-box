@@ -9,18 +9,18 @@
     async function shortenURL() {
       isLoading = true;
       try {
-        const response = await fetch('http://localhost:5000/shorten', {
+        const response = await fetch('http://localhost:5000/api/shorten', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json' // Set the Content-Type header to application/json
+            'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ long_url: videoLink }),
-          mode: 'cors' // You can remove 'no-cors', use 'cors' to enable CORS
+          body: JSON.stringify({ url: videoLink }),
+          
         });
   
         if (response.ok) {
           const data = await response.json();
-          shortenedURL = data.short_url;
+          shortenedURL = data.url;
         } else {
           shortenedURL = `Error occurred. Status: ${response.status}`;
         }
@@ -33,7 +33,6 @@
     }
   </script>
   
-  <!-- Svelte Frontend - HTML -->
   <div class="h-screen flex justify-center items-center">
     <div class="bg-white dark:bg-slate-800 rounded-lg px-6 py-8 ring-1 ring-slate-900/5 shadow-xl w-2/4 m-6">
       <h3 class="text-slate-900 dark:text-white text-lg font-medium mb-6">URL Shortener</h3>
@@ -54,7 +53,7 @@
       </form>
   
       {#if shortenedURL}
-        <p class="mt-4">Shortened URL: <a href={shortenedURL} target="_blank" rel="noopener noreferrer">{shortenedURL}</a></p>
+        <p class="mt-4">Shortened URL: <a href="https://cloudys.tech/s/{shortenURL}" target="_blank" rel="noopener noreferrer" class="text-white">https://cloudys.tech/s/{shortenedURL}</a></p>
       {/if}
     </div>
   </div>
