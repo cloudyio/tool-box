@@ -9,7 +9,7 @@
     async function shortenURL() {
       isLoading = true;
       try {
-        const response = await fetch('htts://cloudys.tech/api/shorten', {
+        const response = await fetch('https://cloudys.tech/api/shorten', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
