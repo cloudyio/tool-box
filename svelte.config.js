@@ -10,9 +10,6 @@ const config = {
 		adapter: adapter()
 	},
 	preprocess: vitePreprocess(),
-	server: {
-		port: 80,
-	}
 };
 
 export default config;

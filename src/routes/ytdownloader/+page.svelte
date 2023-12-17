@@ -9,7 +9,7 @@
     console.log(videoId);
 
     try {
-      const response = await fetch('http://localhost:5000/api/download', {
+      const response = await fetch('https://cloudys.tech/api/download', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

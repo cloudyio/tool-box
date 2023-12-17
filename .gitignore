@@ -3,6 +3,9 @@ node_modules
 /build
 /.svelte-kit
 /package
+/server/.vercel
+/server/__pycache__
+/server/venv
 .env
 .env.*
 !.env.example
